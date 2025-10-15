@@ -17,9 +17,11 @@ public class DNA {
 
         for (int i = 0; i < sequence.length(); i++) {
             int count = 0;
-            while (i + STR.length() <= sequence.length() && sequence.substring(i, i + STR.length()).equals(STR)) {
-                count ++;
-                i += STR.length();
+            if (STR.charAt(0) == sequence.charAt(i)) {
+                while (i + STR.length() <= sequence.length() && sequence.substring(i, i + STR.length()).equals(STR)) {
+                    count ++;
+                    i += STR.length();
+                }
             }
 
             if (count > maxCount) {
