@@ -24,30 +24,42 @@ public class DNA {
             return 0;
         }
 
+        // maxReps is the maximum number of times that the STR occurs in sequence.
         int maxReps = 0;
+
+        // Calculates the R^(m - 1) power that is used to remove the first term when sliding.
         slidePower = findPower(STR.length() - 1);
+
         long STRhash = hash(STR);
         long seqHash;
-        int numMatches = 0;
-        boolean tricky = false;
 
+        // Tracks the current number of STRs in sequence, later to be compared to our max.
+        int numMatches = 0;
+
+        // Loops through the whole sequence but stops when it gets to the point no more STRs could fit.
         for (int i = 0; i < sequence.length() - STR.length(); i++) {
+
+            // Takes the hash of the
             seqHash = hash(sequence, STR.length(), i);
             if (STRhash == seqHash) {
                 numMatches = findMatches(sequence, STR, STRhash, seqHash, i);
                 maxReps = Math.max(numMatches, maxReps);
                 // i updates to be ahead of the word, but you subtract one because the loop increments itself
                 i += (numMatches * STR.length()) - 1;
+
+                // Check if the next character could start a new STR match but doesn't.
                 if (i != sequence.length() - 1 && STR.charAt(0) != sequence.charAt(i + 1)) {
+                    // Backtrack to check overlapping possibilities starting at the second index of the prev STR.
                     i -= numMatches * STR.length() - 2;
                 }
                 // Continue because you are skipping ahead in the loop.
                 continue;
             }
 
-//            if (i + 1 <= sequence.length() - STR.length()) {
-//                seqHash = slide(seqHash, sequence, STR.length(), i);
-//            }
+            // Slide the hash window forward by one position for the next iteration.
+            if (i + 1 <= sequence.length() - STR.length()) {
+                seqHash = slide(seqHash, sequence, STR.length(), i);
+            }
 
         }
 
@@ -55,27 +67,34 @@ public class DNA {
     }
 
 
-
+    // Counts how many consecutive STRs occur from a given starting index.
     public static int findMatches(String sequence, String STR, long STRhash, long seqHash, int index) {
         int count = 0;
+
+        // Temporary variable that can update to represent the index.
         int current = index;
+
+        // Keep checking consecutive STRs as long as hashes match.
         while (STRhash == seqHash) {
             count++;
 
-            // Note that you must do double the STR length because current is the start of the first occurrence.
+            // Note that you must do the STR length DOUBLED because current is the start of the first occurrence.
+            // So you must check for space for another occurrence after.
             if (current + (2 * STR.length()) <= sequence.length()) {
+                // If there is space for another STR, increment current and find the new hash there.
                 current += STR.length();
                 seqHash = hash(sequence, STR.length(), current);
             }
+
+            // If there isn't space, return the current number of consecutive matches.
             else {
                 return count;
             }
         }
+
+        // Return the total count of consecutive matches found.
         return count;
     }
-
-    // Just made a match, next chunk is not a match, now you need to backup and check the middle of the previous chunk
-    // backup to first instance of first character in STR or second character in chunk
 
     // The hash function takes in a string and converts it to a unique number through Horner's method.
     public static long hash(String str, int length, int index) {
@@ -87,7 +106,7 @@ public class DNA {
         return hash;
     }
 
-
+    // Overwritten hash function for the STR hash.
     public static long hash(String str) {
         return hash(str, str.length(), 0);
     }
@@ -99,6 +118,7 @@ public class DNA {
         return (oldHash - seq.charAt(index) * slidePower) * RADIX + seq.charAt(index + length);
     }
 
+    // Same as the POW function just more efficient.
     public static long findPower(int power) {
         int count = 1;
         for (int i = 0; i < power; i++) {
